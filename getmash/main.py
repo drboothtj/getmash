@@ -1,0 +1,3 @@
+'''
+main routine for getmash
+'''

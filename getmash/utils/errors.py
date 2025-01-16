@@ -1,0 +1,3 @@
+'''
+custom errors for getmash
+'''

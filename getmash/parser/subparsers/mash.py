@@ -7,28 +7,32 @@ def get_arguments(subparser):
     add arguments to the mash subparser
     '''
     subparser.add_argument(
-        "gbks",
-        help="Input .gbk files containing protein sequences"
+        "fnas",
+        help="Search string for .fna input files"
         )
     subparser.add_argument(
         "output_directory", help="Directory to save the MASH data"
         )
     subparser.add_argument(
-        "--insert-common-args",
-        "-i",
+        "--kmer-size",
+        "-k",
         type=int,
-        default=7500,
-        help="Maximum sequence length to process, sequences longer than this will be chunked, and processed separately"
+        default=15,
+        help=(
+        "K-mer size for mash sketch. " #add meaningful description /HINT)
+        "(default: %(default)s)"
+            )
         )
-    ## add most relevent!!
     subparser.add_argument(
-        "--parameters",
-        "-p",
-        type=str,
-        default=None,
-        help="additional MASH parameters" # add help info
+        "--sketch-size",
+        "-s",
+        type=int,
+        default=10000,
+        help=(
+        "Sketch size for mash. " #add meaningful description /HINT)
+        "(default: %(default)s)"
+            )
         )
-    return subparser
 
 def get_subparser(subparsers) -> None:
     '''
@@ -38,5 +42,5 @@ def get_subparser(subparsers) -> None:
         returns:
             None
     '''
-    subparser = subparsers.add_parser('mash', help='run MASH on you input genomes')
+    subparser = subparsers.add_parser('mash', help='run MASH on you input genomes') #for more parameters run mash independently and run getmash cluster on output
     subparser = get_arguments(subparser)

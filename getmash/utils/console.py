@@ -1,9 +1,12 @@
 '''
 getmash utils for interfacing with the terminal
+    functions:
+        xxx
 '''
 import subprocess
+from typing import List
 
-def run_in_terminal(command: List[str]) -> None:
+def run_in_terminal(command: List[str]):
     '''
     Convert a string into a command and run in the terminal.
         Aruments:

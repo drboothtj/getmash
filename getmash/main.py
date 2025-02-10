@@ -23,7 +23,7 @@ def run_mash(args) -> str:
         args.kmer_size,
         args.sketch_size,
     )
-    mash_table_path = dist.dist(sketch_path, args.kmer_size, args.sketch_size, args.fnas) #maybe this architecture is a bit clunky
+    mash_table_path = dist.dist(sketch_path, args.sketch_size, args.fnas) #maybe this architecture is a bit clunky
     return mash_table_path
 
 def main() -> None:
@@ -46,7 +46,7 @@ def main() -> None:
         _ = run_mash(args)
 
     elif args.module == "cluster":
-        clustering.get_clusters(args.mash_table)
+        clustering.get_clusters(args.mash_table) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
     elif args.module == "plot":
         print('running plotting')
 

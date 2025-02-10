@@ -16,7 +16,10 @@ setup(
     license='GNU General Public License v3.0',
     python_requires='>=3.7',
     install_requires=[
-    'pandas>=2.2.3'
+    'pandas>=2.2.3',
+    'scipy>=1.15.1',
+    'scikit-learn>=1.6.1',
+    'matplotlib>=3.10.0',
     ],
     entry_points={'console_scripts': ["getmash=getmash.__main__:entrypoint"]}
 )

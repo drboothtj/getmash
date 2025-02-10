@@ -169,12 +169,11 @@ def get_clusters(mash_table_path: str) -> str:
     mash_data = get_mash_dict(mash_table_path)
     s_score = 0
     iteration = 1
-    while s_score < 0.4 and iteration <= 2: #make both input parameters!!!
+    while s_score < 0.4 or iteration <= 2: #make both input parameters!!! and ask user if they want to do it at all!
         distance_matrix = dict_to_matrix(mash_data)
         s_score, points_to_drop = do_clustering(distance_matrix)
         print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging
         print(f'Dropping {len(points_to_drop)} samples.')
-        print(f'Dropping {points_to_drop}')
         mash_data = drop_data(mash_data, points_to_drop)
         iteration += 1
     #final iteration outside of loop!

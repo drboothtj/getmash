@@ -65,9 +65,9 @@ def main() -> None:
 #   - clean the architecture
 #   - add auto data pruning
 #   - enable inputing a custom distance table
-#   - output correct info
+#   - output all info / update filenames
 #   - add layers to establish sub clusters
-#   - add rounds of sample removal to improve silhoutte scores
+#   - plot kmeans and clusters on a graph
 
 #PLOT:
 #   - figure out what we need to plot...

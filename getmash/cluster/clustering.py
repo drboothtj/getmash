@@ -5,6 +5,7 @@ from typing import Dict
 from scipy.spatial.distance import squareform, pdist
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -62,8 +63,8 @@ def do_clustering(df_mash):
     distances = squareform(distances)
     linkage_matrix = linkage(distances, method='ward')
     # reorder rows and columns of the distance matrix based on clustering
-    #ordered_indices = dendrogram(linkage_matrix, no_plot=True)['leaves']
-    #df_reordered = df_similarity.iloc[ordered_indices, ordered_indices]
+    ordered_indices = dendrogram(linkage_matrix, no_plot=True)['leaves']
+    df_reordered = df_similarity.iloc[ordered_indices, ordered_indices]
     best_k, results = chooseBestKforKMeans(distances)
     print(f'The recommends {best_k} clusters as optimal. We highly recommend confirming this manually.')
 
@@ -75,6 +76,47 @@ def do_clustering(df_mash):
     plt.xlabel('K')
     plt.ylabel('Adjusted Inertia')
     plt.savefig("kmeans_plot.png")
+
+    '''
+    NOT SURE WHETHER TO USE YET
+    # Variables to store the silhouette scores
+    silhouette_scores = []
+
+    # Iterate over different numbers of clusters
+    for num_clusters in range(2, 10):
+            # Use fcluster to assign cluster labels
+            clusters = fcluster(linkage_matrix, t=num_clusters, criterion='maxclust')
+
+            # Calculate the silhouette score
+            score = silhouette_score(distances, clusters)
+
+            # Store the silhouette score
+            silhouette_scores.append(score)
+
+    silhouette_scores_prefiltering = silhouette_scores.copy()
+
+    # Plot the silhouette scores against the number of clusters
+    plt.figure(figsize=(7,4))
+    plt.plot(range(2, 10), silhouette_scores, marker='o')
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Silhouette Score')
+    plt.title('Silhouette Score vs Number of Clusters')
+    plt.savefig("silhouette_plot.png")
+    '''
+
+    ### get assignments
+    n_clusters = best_k ####USER INPUT! ALSO NEEDED
+    # Use fcluster to assign cluster labels
+    clusters = fcluster(linkage_matrix, t=n_clusters, criterion='maxclust')
+
+    # Create dataframe assigning genomes to clusters
+    df_mash_clusters_kmeans = pd.DataFrame({'Cluster': clusters}, index=df_similarity.index)
+    df_mash_clusters_kmeans.to_csv('clusters.csv')
+    # Compute silhouette coefficient for each sample
+    silhouette_values = silhouette_samples(distances, clusters)
+
+    df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_reordered.index)
+    df_silhouette.to_csv("df_silhouette_1.csv")
 
 def dict_to_matrix(data: Dict) -> pd.DataFrame:
     '''

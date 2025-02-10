@@ -5,6 +5,26 @@ main routine for getmash
 '''
 from getmash.parser import parser
 from getmash.mash import dist, sketch #add extract
+from getmash.cluster import clustering
+
+def run_mash(args) -> str:
+    '''
+    function to run mash module
+        arguments:
+            args: arguments from argparse
+        returns:
+            mash_table_path: the path to the produced mash table
+    '''
+    #move to mash module?   
+    #add a step to extract from genbank files if provided
+    sketch_path = sketch.sketch(
+        args.fnas,
+        args.output_directory,
+        args.kmer_size,
+        args.sketch_size,
+    )
+    mash_table_path = dist.dist(sketch_path, args.kmer_size, args.sketch_size, args.fnas) #maybe this architecture is a bit clunky
+    return mash_table_path
 
 def main() -> None:
     '''
@@ -16,20 +36,17 @@ def main() -> None:
     '''
     args = parser.parse_args()
     #allow supplying files or mash result and convert to distance martix
+    #add a total work flow! module == full_workflow
+    '''
+    if args. module == "workflow":
+        mash_table_path = run_mash(args)
+        ...
+    '''
     if args.module == "mash":
-        #add a step to extract from genbank files if provided
-
-        sketch_path = sketch.sketch(
-            args.fnas,
-            args.output_directory,
-            args.kmer_size,
-            args.sketch_size,
-        )
-        mash_table_path = dist.dist(sketch_path, args.kmer_size, args.sketch_size, args.fnas) #maybe this architecture is a bit clunky
+        _ = run_mash(args)
 
     elif args.module == "cluster":
-        print('running clustering')
-        #take tdistance matrix as input
+        clustering.get_clusters(args.mash_table)
     elif args.module == "plot":
         print('running plotting')
 

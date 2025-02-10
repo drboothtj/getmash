@@ -4,11 +4,10 @@ subparser for mash clustering
 
 def get_arguments(subparser):
     subparser.add_argument(
-        "--place-holder",
-        "-ph",
+        "mash_table",
         type=str,
         default=None,
-        help="PLACEHOLDER" # add help info
+        help="Path to an all vs. all mash table"
         )
     return subparser
 

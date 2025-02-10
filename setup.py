@@ -15,6 +15,8 @@ setup(
     url="https://github.com/DrBoothTJ/getmash",
     license='GNU General Public License v3.0',
     python_requires='>=3.7',
-    install_requires=[],
+    install_requires=[
+    'pandas>=2.2.3'
+    ],
     entry_points={'console_scripts': ["getmash=getmash.__main__:entrypoint"]}
 )

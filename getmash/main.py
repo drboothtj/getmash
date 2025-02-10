@@ -47,6 +47,7 @@ def main() -> None:
 
     elif args.module == "cluster":
         clustering.get_clusters(args.mash_table) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
+
     elif args.module == "plot":
         print('running plotting')
 
@@ -54,6 +55,24 @@ def main() -> None:
         print('select a module or use -h')
 
 
-# do clustering on mash data NOTE: split initial and silhoutting?
+#TODO
+#MASH:
+#   -add automatic kmer size optimisation
+#   -check folders exist and make new folder
+#   -add parallelisation
 
-# plot stuff...
+#CLUSTERING:
+#   - clean the architecture
+#   - add auto data pruning
+#   - enable inputing a custom distance table
+#   - output correct info
+#   - add layers to establish sub clusters
+#   - add rounds of sample removal to improve silhoutte scores
+
+#PLOT:
+#   - figure out what we need to plot...
+#   - similarity heat map. W/ wo cluster colours
+#   - scatter plot
+
+#WORKFLOW:
+#   - add a module for the full workflow

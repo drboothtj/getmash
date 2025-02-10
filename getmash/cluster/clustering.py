@@ -1,7 +1,7 @@
 '''
 take mash data and return clusters
 '''
-from typing import Dict
+from typing import Dict, List
 from scipy.spatial.distance import squareform, pdist
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from sklearn.cluster import KMeans
@@ -12,11 +12,24 @@ import pandas as pd
 import numpy as np
 import csv
 
-
-#from sklearn.metrics import silhouette_samples, silhouette_score
-
-
-
+def drop_data(mash_data: Dict, points_to_drop: List):
+    '''
+    remove the specified points from the mash data
+    '''
+    new_sources = []
+    new_hits = []
+    new_values = []
+    for source, hit, value in zip(mash_data['Source'], mash_data['Hit'], mash_data['Value']):
+        if not (source in points_to_drop or hit in points_to_drop):
+            new_sources.append(source)
+            new_hits.append(hit)
+            new_values.append(value)
+    new_mash_data = {
+        'Source': new_sources,
+        'Hit': new_hits,
+        'Value': new_values
+    }
+    return new_mash_data
 
 
 def kMeansRes(scaled_data, k, alpha_k=0.02):
@@ -42,11 +55,11 @@ def kMeansRes(scaled_data, k, alpha_k=0.02):
     scaled_inertia = kmeans.inertia_ / inertia_o + alpha_k * k
     return scaled_inertia
 
-def chooseBestKforKMeans(scaled_data, k_range=10): #ADD K RANGE AS VARIABLE
+def chooseBestKforKMeans(scaled_data, n_samples, k_range=10): #ADD K RANGE AS VARIABLE
     '''
     '''
     ans = []
-    for k in range(2, k_range):
+    for k in range(2, min(n_samples, k_range)):
         scaled_inertia = kMeansRes(scaled_data, k)
         ans.append((k, scaled_inertia))
     results = pd.DataFrame(ans, columns = ['k','Scaled Inertia']).set_index('k')
@@ -59,13 +72,13 @@ def do_clustering(df_mash):
     # convert to similarity
     df_similarity = 1 - df_mash
     distances = pdist(df_similarity, metric='correlation')
-    print(type(distances))
     distances = squareform(distances)
     linkage_matrix = linkage(distances, method='ward')
+    n_samples = linkage_matrix.shape[0] + 1
     # reorder rows and columns of the distance matrix based on clustering
-    ordered_indices = dendrogram(linkage_matrix, no_plot=True)['leaves']
-    df_reordered = df_similarity.iloc[ordered_indices, ordered_indices]
-    best_k, results = chooseBestKforKMeans(distances)
+    #ordered_indices = dendrogram(linkage_matrix, no_plot=True)['leaves']
+    #df_reordered = df_similarity.iloc[ordered_indices, ordered_indices]
+    best_k, results = chooseBestKforKMeans(distances, n_samples)
     print(f'The recommends {best_k} clusters as optimal. We highly recommend confirming this manually.')
 
     # plot the results 
@@ -78,31 +91,20 @@ def do_clustering(df_mash):
     plt.savefig("kmeans_plot.png")
 
     '''
-    NOT SURE WHETHER TO USE YET
+    WE DO NEED THIS but only for the selected number of clusters!
     # Variables to store the silhouette scores
     silhouette_scores = []
 
     # Iterate over different numbers of clusters
     for num_clusters in range(2, 10):
-            # Use fcluster to assign cluster labels
-            clusters = fcluster(linkage_matrix, t=num_clusters, criterion='maxclust')
-
-            # Calculate the silhouette score
-            score = silhouette_score(distances, clusters)
-
-            # Store the silhouette score
-            silhouette_scores.append(score)
-
-    silhouette_scores_prefiltering = silhouette_scores.copy()
-
-    # Plot the silhouette scores against the number of clusters
-    plt.figure(figsize=(7,4))
-    plt.plot(range(2, 10), silhouette_scores, marker='o')
-    plt.xlabel('Number of Clusters')
-    plt.ylabel('Silhouette Score')
-    plt.title('Silhouette Score vs Number of Clusters')
-    plt.savefig("silhouette_plot.png")
     '''
+
+    # Use fcluster to assign cluster labels
+    clusters = fcluster(linkage_matrix, t=best_k, criterion='maxclust') #best k OR user input!
+
+    # Calculate the silhouette score
+    s_score = silhouette_score(distances, clusters)
+    ##############SEPERATE THIS WHOLE BIT OUT! SILHOUTTE MAKES LESS SENSE IN FINAL ITERATION
 
     ### get assignments
     n_clusters = best_k ####USER INPUT! ALSO NEEDED
@@ -115,8 +117,12 @@ def do_clustering(df_mash):
     # Compute silhouette coefficient for each sample
     silhouette_values = silhouette_samples(distances, clusters)
 
-    df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_reordered.index)
+    df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_similarity.index)
     df_silhouette.to_csv("df_silhouette_1.csv")
+
+    points_to_drop = df_silhouette[df_silhouette["Silhouette"] < 0.4].index.tolist()
+
+    return s_score, points_to_drop
 
 def dict_to_matrix(data: Dict) -> pd.DataFrame:
     '''
@@ -161,8 +167,17 @@ def get_clusters(mash_table_path: str) -> str:
             clusters_path: path to clusters file
     '''
     mash_data = get_mash_dict(mash_table_path)
+    s_score = 0
+    iteration = 1
+    while s_score < 0.4 and iteration <= 2: #make both input parameters!!!
+        distance_matrix = dict_to_matrix(mash_data)
+        s_score, points_to_drop = do_clustering(distance_matrix)
+        print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging
+        print(f'Dropping {len(points_to_drop)} samples.')
+        print(f'Dropping {points_to_drop}')
+        mash_data = drop_data(mash_data, points_to_drop)
+        iteration += 1
+    #final iteration outside of loop!
     distance_matrix = dict_to_matrix(mash_data)
-    cluster_matrix = do_clustering(distance_matrix)
-    print(cluster_matrix)
-
-
+    s_score, _ = do_clustering(distance_matrix)
+    print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging

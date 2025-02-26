@@ -46,7 +46,7 @@ def main() -> None:
         _ = run_mash(args)
 
     elif args.module == "cluster":
-        clustering.get_clusters(args.mash_table) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
+        clustering.get_clusters(args.mash_table, args.output_directory) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
 
     elif args.module == "plot":
         print('running plotting')
@@ -57,22 +57,28 @@ def main() -> None:
 
 #TODO
 #MASH:
-#   -add automatic kmer size optimisation
-#   -check folders exist and make new folder
-#   -add parallelisation
+#   -add automatic kmer size optimisation      [NV]
+#   -check folders exist and make new folder   [NV]
+#   -add parallelisation?                      [NV]
 
 #CLUSTERING:
-#   - clean the architecture
-#   - add auto data pruning
-#   - enable inputing a custom distance table
-#   - output all info / update filenames
-#   - add layers to establish sub clusters
-#   - plot kmeans and clusters on a graph
+#   - write output to tables (all tables)      [  ]
+#   - enable inputing a custom distance table  [NV]
+#   - plot clusters on a graph                 [  ]
 
 #PLOT:
-#   - figure out what we need to plot...
 #   - similarity heat map. W/ wo cluster colours
-#   - scatter plot
+#   - scatter plot 
+#   - produce file for ITOL?
+#   - DO THESE IN CLUSTERING REMOVE PLOT MODULE
 
 #WORKFLOW:
 #   - add a module for the full workflow
+#   - add layers to establish sub clusters
+
+#ALL
+# - change name
+# - pypi v0.1.0
+# - Add logging
+# - Add unit tests
+# - Code review

@@ -9,6 +9,12 @@ def get_arguments(subparser):
         default=None,
         help="Path to an all vs. all mash table"
         )
+    subparser.add_argument(
+        "output_directory",
+        type=str,
+        default=None, 
+        help="Directory to save the cluster data"
+        )
     return subparser
 
 def get_subparser(subparsers) -> None:

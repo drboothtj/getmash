@@ -6,11 +6,12 @@ from scipy.spatial.distance import squareform, pdist
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
+from getmash.utils.plotting import basic_dotplot
 
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import csv
+import os
 
 def drop_data(mash_data: Dict, points_to_drop: List):
     '''
@@ -66,60 +67,26 @@ def chooseBestKforKMeans(scaled_data, n_samples, k_range=10): #ADD K RANGE AS VA
     best_k = results.idxmin()[0]
     return best_k, results
 
-def do_clustering(df_mash):
+def do_clustering(df_mash, output_directory: str, iteration: int):
     '''
     '''
-    # convert to similarity
-    df_similarity = 1 - df_mash
+    df_similarity = 1 - df_mash # convert to similarity
     distances = pdist(df_similarity, metric='correlation')
     distances = squareform(distances)
     linkage_matrix = linkage(distances, method='ward')
     n_samples = linkage_matrix.shape[0] + 1
-    # reorder rows and columns of the distance matrix based on clustering
-    #ordered_indices = dendrogram(linkage_matrix, no_plot=True)['leaves']
-    #df_reordered = df_similarity.iloc[ordered_indices, ordered_indices]
     best_k, results = chooseBestKforKMeans(distances, n_samples)
     print(f'The recommends {best_k} clusters as optimal. We highly recommend confirming this manually.')
-
-    # plot the results 
-    #ALSO PLOT DISTANCES - extract to utils
-    plt.figure(figsize=(7,4))
-    plt.plot(results,'o')
-    plt.title('Adjusted Inertia for each K')
-    plt.xlabel('K')
-    plt.ylabel('Adjusted Inertia')
-    plt.savefig("kmeans_plot.png")
-
-    '''
-    WE DO NEED THIS but only for the selected number of clusters!
-    # Variables to store the silhouette scores
-    silhouette_scores = []
-
-    # Iterate over different numbers of clusters
-    for num_clusters in range(2, 10):
-    '''
-
-    # Use fcluster to assign cluster labels
+    basic_dotplot(results, 'K', 'Adjusted Inertia', os.path.join(output_directory, f'kmeans_plot_iteration_{iteration}.png')) #NB: Currently outputting every time, this should be fixed.
+    
     clusters = fcluster(linkage_matrix, t=best_k, criterion='maxclust') #best k OR user input!
-
-    # Calculate the silhouette score
     s_score = silhouette_score(distances, clusters)
-    ##############SEPERATE THIS WHOLE BIT OUT! SILHOUTTE MAKES LESS SENSE IN FINAL ITERATION
-
-    ### get assignments
-    n_clusters = best_k ####USER INPUT! ALSO NEEDED
-    # Use fcluster to assign cluster labels
+    n_clusters = best_k 
     clusters = fcluster(linkage_matrix, t=n_clusters, criterion='maxclust')
-
-    # Create dataframe assigning genomes to clusters
-    df_mash_clusters_kmeans = pd.DataFrame({'Cluster': clusters}, index=df_similarity.index)
-    df_mash_clusters_kmeans.to_csv('clusters.csv')
-    # Compute silhouette coefficient for each sample
+    
     silhouette_values = silhouette_samples(distances, clusters)
-
     df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_similarity.index)
-    df_silhouette.to_csv("df_silhouette_1.csv")
-
+    df_silhouette.to_csv(os.path.join(output_directory, f"clusters_iteration_{iteration}.csv"))
     points_to_drop = df_silhouette[df_silhouette["Silhouette"] < 0.4].index.tolist()
 
     return s_score, points_to_drop
@@ -158,11 +125,12 @@ def get_mash_dict(path: str) -> Dict:
                 data['Value'].append(float(line[2]))  # Convert Value to float
             return data
 
-def get_clusters(mash_table_path: str) -> str:
+def get_clusters(mash_table_path: str, output_directory: str) -> str:
     '''
     main routine for clustering
         arguments:
             mash_table_path: path to all vs. all mash results as string
+             output_directory: path to the output directory
         returns:
             clusters_path: path to clusters file
     '''
@@ -171,12 +139,11 @@ def get_clusters(mash_table_path: str) -> str:
     iteration = 1
     while s_score < 0.4 or iteration <= 2: #make both input parameters!!! and ask user if they want to do it at all!
         distance_matrix = dict_to_matrix(mash_data)
-        s_score, points_to_drop = do_clustering(distance_matrix)
+        s_score, points_to_drop = do_clustering(distance_matrix, output_directory, iteration) #make plotting and writing false
         print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging
         print(f'Dropping {len(points_to_drop)} samples.')
         mash_data = drop_data(mash_data, points_to_drop)
         iteration += 1
-    #final iteration outside of loop!
-    distance_matrix = dict_to_matrix(mash_data)
-    s_score, _ = do_clustering(distance_matrix)
+    distance_matrix = dict_to_matrix(mash_data) #final iteration outside of loop! make plotting and writing true
+    s_score, _ = do_clustering(distance_matrix, output_directory, iteration)
     print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging

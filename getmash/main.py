@@ -46,8 +46,10 @@ def main() -> None:
         _ = run_mash(args)
 
     elif args.module == "cluster":
-        output_flag = True #change this to an argument
-        clustering.get_clusters(args.mash_table, args.output_directory, output_flag) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
+        s_score_threshold = args.s_score_threshold
+        max_iterations = args.max_iterations
+        output_flag = args.output_intermediate
+        clustering.get_clusters(args.mash_table, args.output_directory, s_score_threshold, max_iterations, output_flag) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
 
     else:
         print('select a module or use -h')

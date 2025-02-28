@@ -137,7 +137,7 @@ def get_mash_dict(path: str) -> Dict:
                 data['Value'].append(float(line[2]))  # Convert Value to float
             return data
 
-def get_clusters(mash_table_path: str, output_directory: str, output_flag: bool) -> str:
+def get_clusters(mash_table_path: str, output_directory: str, s_score_threshold: float, max_iterations: int, output_flag: bool) -> str:
     '''
     main routine for clustering
         arguments:
@@ -149,13 +149,12 @@ def get_clusters(mash_table_path: str, output_directory: str, output_flag: bool)
     mash_data = get_mash_dict(mash_table_path)
     s_score = 0
     iteration = 1
-    while s_score < 0.4 and iteration <= 2: #make both input parameters!!! and ask user if they want to do it at all!
+    while s_score < s_score_threshold and iteration < max_iterations: #make both input parameters!!! and ask user if they want to do it at all!
         distance_matrix = dict_to_matrix(mash_data)
         s_score, points_to_drop = do_clustering(distance_matrix, output_directory, iteration, output_flag) #make plotting and writing false
         print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging
         print(f'Dropping {len(points_to_drop)} samples.')
         mash_data = drop_data(mash_data, points_to_drop)
         iteration += 1
-    distance_matrix = dict_to_matrix(mash_data) #final iteration outside of loop! make plotting and writing true
     s_score, _ = do_clustering(distance_matrix, output_directory, iteration)
-    print(f'ITERATION {iteration}: the final silhoutte score is {s_score}.') #change to logging
+    print(f'ITERATION {iteration -1}: the final silhoutte score is {s_score}.') #change to logging

@@ -96,10 +96,12 @@ def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0
 
     silhouette_values = silhouette_samples(distances, clusters)
     df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_similarity.index)
-    df_silhouette.to_csv(os.path.join(output_directory, f"clusters_iteration_{iteration}.csv"))
+    if output_flag:
+        df_silhouette.to_csv(os.path.join(output_directory, f"clusters_iteration_{iteration}.csv"))
     points_to_drop = df_silhouette[df_silhouette["Silhouette"] < 0.4].index.tolist()
 
-    clustermap(df_similarity, df_silhouette, linkage_matrix)
+    if output_flag:
+        clustermap(df_similarity, df_silhouette, linkage_matrix, os.path.join(output_directory, f'clustermap_iteration_{iteration}.svg'))
 
     return s_score, points_to_drop
 
@@ -121,7 +123,7 @@ def get_mash_dict(path: str) -> Dict:
         extract the data from the mash table
             arguments:
                 path: path to mash data as string
-                returns:
+            returns:
                     data: dictionary containing hits and scores
         '''
         with open(path) as file:
@@ -134,7 +136,7 @@ def get_mash_dict(path: str) -> Dict:
             for line in tsv_file:
                 data['Source'].append(line[0])
                 data['Hit'].append(line[1])
-                data['Value'].append(float(line[2]))  # Convert Value to float
+                data['Value'].append(float(line[2])) 
             return data
 
 def get_clusters(mash_table_path: str, output_directory: str, s_score_threshold: float, max_iterations: int, output_flag: bool) -> str:

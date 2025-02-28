@@ -20,7 +20,7 @@ def basic_dotplot(results, x_label, y_label, output_path) -> None:
     plt.ylabel(y_label)
     plt.savefig(output_path)
 
-def clustermap(df_similarity, df_clusters, matrix) -> None:
+def clustermap(df_similarity, df_clusters, matrix, output_path: str) -> None:
     '''
     plot a cluster map based on the linkage matrix
     '''
@@ -46,4 +46,4 @@ def clustermap(df_similarity, df_clusters, matrix) -> None:
     labels = [f"{cluster} (Members: {cluster_sizes[cluster]})" for cluster in sorted(cluster_list)]
 
     plt.legend(color_legend, labels, title='Cluster ID', bbox_to_anchor=(-1, 1))  
-    plt.savefig("test.png", bbox_inches="tight")
+    plt.savefig(output_path, bbox_inches="tight")

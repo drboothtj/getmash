@@ -38,10 +38,11 @@ def main() -> None:
     #allow supplying files or mash result and convert to distance martix
     #add a total work flow! module == full_workflow
     '''
-    if args. module == "workflow":
+    elif args. module == "workflow":
         mash_table_path = run_mash(args)
         ...
     '''
+
     if args.module == "mash":
         _ = run_mash(args)
 
@@ -50,6 +51,7 @@ def main() -> None:
         max_iterations = args.max_iterations
         output_flag = args.output_intermediate
         clustering.get_clusters(args.mash_table, args.output_directory, s_score_threshold, max_iterations, output_flag) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
+        # actually, it should just work if you point it to a different table... TEST!
 
     else:
         print('select a module or use -h')
@@ -61,22 +63,20 @@ def main() -> None:
 #   -add parallelisation?                      [NV]
 
 #CLUSTERING:
-#   - write output to tables (all tables)             [  ]
-#   - don't write intermediate files unless requested [  ]
-#   - enable inputing a custom distance table         [NV]
+#   - enable inputing a custom distance table /test   [NV]/[  ]
 #   - add back unclustered members                    [  ]
-#   - comparison of sihoutte maxima?                  [  ]
+#   - comparison of sihoutte maxima?                  [NV]
 #   - better clustermap colours                       [NV]
 #   - produce file for ITOL?                          [  ]
 
 #WORKFLOW:
-#   - add a module for the full workflow
-#   - add layers to establish sub clusters
+#   - add a module for the full workflow              [  ]
+#   - add layers to establish sub clusters            [NV]
 
 #ALL
-# - squash/fix warnings
-# - change name
-# - pypi v0.1.0
-# - Add logging
-# - Test and add unit tests
-# - Code review
+# - squash/fix warnings                               [  ]
+# - change name                                       [  ]
+# - pypi v0.1.0                                       [  ]
+# - Add logging                                       [  ]
+# - Test and add unit tests                           [NV]
+# - Code review                                       [NV]

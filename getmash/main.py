@@ -46,14 +46,11 @@ def main() -> None:
         _ = run_mash(args)
 
     elif args.module == "cluster":
-        clustering.get_clusters(args.mash_table, args.output_directory) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
-
-    elif args.module == "plot":
-        print('running plotting')
+        output_flag = True #change this to an argument
+        clustering.get_clusters(args.mash_table, args.output_directory, output_flag) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
 
     else:
         print('select a module or use -h')
-
 
 #TODO
 #MASH:
@@ -62,23 +59,22 @@ def main() -> None:
 #   -add parallelisation?                      [NV]
 
 #CLUSTERING:
-#   - write output to tables (all tables)      [  ]
-#   - enable inputing a custom distance table  [NV]
-#   - plot clusters on a graph                 [  ]
-
-#PLOT:
-#   - similarity heat map. W/ wo cluster colours
-#   - scatter plot 
-#   - produce file for ITOL?
-#   - DO THESE IN CLUSTERING REMOVE PLOT MODULE
+#   - write output to tables (all tables)             [  ]
+#   - don't write intermediate files unless requested [  ]
+#   - enable inputing a custom distance table         [NV]
+#   - add back unclustered members                    [  ]
+#   - comparison of sihoutte maxima?                  [  ]
+#   - better clustermap colours                       [NV]
+#   - produce file for ITOL?                          [  ]
 
 #WORKFLOW:
 #   - add a module for the full workflow
 #   - add layers to establish sub clusters
 
 #ALL
+# - squash/fix warnings
 # - change name
 # - pypi v0.1.0
 # - Add logging
-# - Add unit tests
+# - Test and add unit tests
 # - Code review

@@ -6,7 +6,7 @@ this is the parser for getmash
 '''
 import argparse
 from argparse import RawTextHelpFormatter
-from getmash.parser.subparsers import mash, cluster, plot
+from getmash.parser.subparsers import mash, cluster
 
 def get_parser():
     '''
@@ -26,7 +26,6 @@ def get_parser():
 
     mash.get_subparser(subparsers)
     cluster.get_subparser(subparsers)
-    plot.get_subparser(subparsers)
     #add full workflow option!
     return parser
 

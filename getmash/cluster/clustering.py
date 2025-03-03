@@ -34,19 +34,13 @@ def drop_data(mash_data: Dict, points_to_drop: List):
 
 def kMeansRes(scaled_data, k, alpha_k=0.02):
     '''
-    # Calculating clusters from https://medium.com/towards-data-science/an-approach-for-choosing-number-of-clusters-for-k-means-c28e614ecb2c
-    Parameters
-    ----------
-    scaled_data: matrix
-        scaled data. rows are samples and columns are features for clustering
-    k: int
-        current k for applying KMeans
-    alpha_k: float
-        manually tuned factor that gives penalty to the number of clusters
-    Returns
-    -------
-    scaled_inertia: float
-        scaled inertia value for current k
+    calculate inertia by number of clusters
+        arguments:
+            scaled_data: matrix
+            k: current k for applying KMeans
+            alpha_k: manually tuned factor that gives penalty to the number of clusters
+        returns:
+            scaled_inertia: scaled inertia value for current k
     '''
 
     inertia_o = np.square((scaled_data - scaled_data.mean(axis=0))).sum()
@@ -66,7 +60,7 @@ def chooseBestKforKMeans(scaled_data, n_samples, k_range=10): #ADD K RANGE AS VA
     best_k = results.idxmin()[0]
     return best_k, results
 
-def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0, output_flag: bool=True) -> Union[float, List, pd.DataFrame]: 
+def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0, s_score_threshold: int=0.4, output_flag: bool=True) -> Union[float, List, pd.DataFrame]: 
     '''
     perform kmeans clustering on a mash matrix
         arguments:
@@ -98,7 +92,7 @@ def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0
     df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_similarity.index)
     if output_flag:
         df_silhouette.to_csv(os.path.join(output_directory, f"clusters_iteration_{iteration}.csv"))
-    points_to_drop = df_silhouette[df_silhouette["Silhouette"] < 0.4].index.tolist()
+    points_to_drop = df_silhouette[df_silhouette["Silhouette"] < s_score_threshold].index.tolist()
 
     if output_flag:
         clustermap(df_similarity, df_silhouette, linkage_matrix, os.path.join(output_directory, f'clustermap_iteration_{iteration}.svg'))
@@ -134,6 +128,7 @@ def get_mash_dict(path: str) -> Dict:
                 'Value': []
             }
             for line in tsv_file:
+                print(line)
                 data['Source'].append(line[0])
                 data['Hit'].append(line[1])
                 data['Value'].append(float(line[2])) 
@@ -151,12 +146,12 @@ def get_clusters(mash_table_path: str, output_directory: str, s_score_threshold:
     mash_data = get_mash_dict(mash_table_path)
     s_score = 0
     iteration = 1
-    while s_score < s_score_threshold and iteration < max_iterations: #make both input parameters!!! and ask user if they want to do it at all!
+    while s_score < s_score_threshold and iteration < max_iterations:
         distance_matrix = dict_to_matrix(mash_data)
-        s_score, points_to_drop = do_clustering(distance_matrix, output_directory, iteration, output_flag) #make plotting and writing false
+        s_score, points_to_drop = do_clustering(distance_matrix, output_directory, iteration, s_score_threshold, output_flag)
         print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging
         print(f'Dropping {len(points_to_drop)} samples.')
         mash_data = drop_data(mash_data, points_to_drop)
         iteration += 1
-    s_score, _ = do_clustering(distance_matrix, output_directory, iteration)
+    s_score, _ = do_clustering(distance_matrix, output_directory, iteration, s_score_threshold)
     print(f'ITERATION {iteration -1}: the final silhoutte score is {s_score}.') #change to logging

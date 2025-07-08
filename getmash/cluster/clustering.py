@@ -6,11 +6,12 @@ from scipy.spatial.distance import squareform, pdist
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
-from getmash.utils.plotting import basic_dotplot, clustermap
 import pandas as pd
 import numpy as np
-import csv
 import os
+
+from getmash.utils.plotting import basic_dotplot, clustermap
+from getmash.utils import io
 
 def drop_data(mash_data: Dict, points_to_drop: List):
     '''
@@ -60,7 +61,10 @@ def chooseBestKforKMeans(scaled_data, n_samples, k_range=10): #ADD K RANGE AS VA
     best_k = results.idxmin()[0]
     return best_k, results
 
-def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0, s_score_threshold: int=0.4, output_flag: bool=True) -> Union[float, List, pd.DataFrame]: 
+def do_clustering(
+        df_mash: pd.DataFrame, output_directory: str,
+        iteration: int=0, s_score_threshold: int=0.4, output_flag: bool=True
+        ) -> Union[float, List, pd.DataFrame]:
     '''
     perform kmeans clustering on a mash matrix
         arguments:
@@ -69,7 +73,8 @@ def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0
             iteration: the loop iteration, used for labeling files
         returns:
             s_score: the silhoutte score of the current clusters
-            points_to_drop: a list of points to be removed for the next round of analysis that fall below the silhoutte threshold
+            points_to_drop: a list of points to be removed for the 
+            next round of analysis that fall below the silhoutte threshold
     '''
     df_similarity = 1 - df_mash # convert distances to similarity
     distances = pdist(df_similarity, metric='correlation')
@@ -78,24 +83,35 @@ def do_clustering(df_mash: pd.DataFrame, output_directory: str, iteration: int=0
 
     n_samples = linkage_matrix.shape[0] + 1
     best_k, results = chooseBestKforKMeans(distances, n_samples)
-    print(f'Recommending {best_k} clusters as optimal. We highly recommend confirming this manually.')
-    
+    print(
+        f'Recommending {best_k} clusters as optimal.'
+        'We highly recommend confirming this manually.'
+        )
+
     if output_flag:
-        basic_dotplot(results, 'K', 'Adjusted Inertia', os.path.join(output_directory, f'kmeans_plot_iteration_{iteration}.png'))
-    
+        basic_dotplot(
+            results, 'K', 'Adjusted Inertia',
+            os.path.join(output_directory, f'kmeans_plot_iteration_{iteration}.png')
+            )
+
     clusters = fcluster(linkage_matrix, t=best_k, criterion='maxclust') #best k OR user input!
     s_score = silhouette_score(distances, clusters)
-    n_clusters = best_k 
+    n_clusters = best_k
     clusters = fcluster(linkage_matrix, t=n_clusters, criterion='maxclust')
 
     silhouette_values = silhouette_samples(distances, clusters)
-    df_silhouette = pd.DataFrame({"Cluster": clusters, "Silhouette": silhouette_values}, index=df_similarity.index)
+    df_silhouette = pd.DataFrame(
+        {"Cluster": clusters, "Silhouette": silhouette_values}, index=df_similarity.index
+        )
     if output_flag:
         df_silhouette.to_csv(os.path.join(output_directory, f"clusters_iteration_{iteration}.csv"))
     points_to_drop = df_silhouette[df_silhouette["Silhouette"] < s_score_threshold].index.tolist()
 
     if output_flag:
-        clustermap(df_similarity, df_silhouette, linkage_matrix, os.path.join(output_directory, f'clustermap_iteration_{iteration}.svg'))
+        clustermap(
+            df_similarity, df_silhouette, linkage_matrix, os.path.join(
+                output_directory, f'clustermap_iteration_{iteration}.svg'
+            ))
 
     return s_score, points_to_drop
 
@@ -112,28 +128,10 @@ def dict_to_matrix(data: Dict) -> pd.DataFrame:
     matrix = matrix.fillna(0)
     return matrix
 
-def get_mash_dict(path: str) -> Dict:
-        '''
-        extract the data from the mash table
-            arguments:
-                path: path to mash data as string
-            returns:
-                    data: dictionary containing hits and scores
-        '''
-        with open(path) as file:
-            tsv_file = csv.reader(file, delimiter="\t")
-            data = {
-                'Source': [],
-                'Hit': [],
-                'Value': []
-            }
-            for line in tsv_file:
-                data['Source'].append(line[0])
-                data['Hit'].append(line[1])
-                data['Value'].append(float(line[2])) 
-            return data
-
-def get_clusters(mash_table_path: str, output_directory: str, s_score_threshold: float, max_iterations: int, output_flag: bool) -> str:
+def get_clusters(
+    mash_table_path: str, output_directory: str,
+    s_score_threshold: float, max_iterations: int, output_flag: bool
+    ) -> str:
     '''
     main routine for clustering
         arguments:
@@ -142,12 +140,14 @@ def get_clusters(mash_table_path: str, output_directory: str, s_score_threshold:
         returns:
             clusters_path: path to clusters file
     '''
-    mash_data = get_mash_dict(mash_table_path)
+    mash_data = io.get_mash_dict(mash_table_path)
     s_score = 0
     iteration = 1
     while s_score < s_score_threshold and iteration < max_iterations:
         distance_matrix = dict_to_matrix(mash_data)
-        s_score, points_to_drop = do_clustering(distance_matrix, output_directory, iteration, s_score_threshold, output_flag)
+        s_score, points_to_drop = do_clustering(
+            distance_matrix, output_directory, iteration, s_score_threshold, output_flag
+            )
         print(f'ITERATION {iteration}: silhoutte score is {s_score}.') #change to logging
         print(f'Dropping {len(points_to_drop)} samples.')
         mash_data = drop_data(mash_data, points_to_drop)

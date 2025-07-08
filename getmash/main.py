@@ -6,6 +6,7 @@ main routine for getmash
 from getmash.parser import parser
 from getmash.mash import dist, sketch #add extract
 from getmash.cluster import clustering
+from getmash.network import network
 
 def run_mash(args) -> str:
     '''
@@ -15,7 +16,7 @@ def run_mash(args) -> str:
         returns:
             mash_table_path: the path to the produced mash table
     '''
-    #move to mash module?   
+    #move to mash module?
     #add a step to extract from genbank files if provided
     sketch_path = sketch.sketch(
         args.fnas,
@@ -23,7 +24,9 @@ def run_mash(args) -> str:
         args.kmer_size,
         args.sketch_size,
     )
-    mash_table_path = dist.dist(sketch_path, args.sketch_size, args.fnas) #maybe this architecture is a bit clunky
+    mash_table_path = dist.dist(
+        sketch_path, args.sketch_size, args.fnas
+        ) #maybe this architecture is a bit clunky
     return mash_table_path
 
 def main() -> None:
@@ -42,7 +45,6 @@ def main() -> None:
         mash_table_path = run_mash(args)
         ...
     '''
-
     if args.module == "mash":
         _ = run_mash(args)
 
@@ -50,9 +52,12 @@ def main() -> None:
         s_score_threshold = args.s_score_threshold
         max_iterations = args.max_iterations
         output_flag = args.output_intermediate
-        clustering.get_clusters(args.mash_table, args.output_directory, s_score_threshold, max_iterations, output_flag) # IMPORTANT: ADD ABILITY TO ADD CUSTOM DISTANCE TABLE
+        clustering.get_clusters(
+            args.mash_table, args.output_directory, s_score_threshold, max_iterations, output_flag
+            )
         # actually, it should just work if you point it to a different table... TEST!
-
+    elif args.module == "network":
+        network.draw_network(args)
     else:
         print('select a module or use -h')
 
@@ -63,11 +68,12 @@ def main() -> None:
 #   -add parallelisation?                      [NV]
 
 #CLUSTERING:
-#   - enable inputing a custom distance table /test   [NV]/[  ]
 #   - add back unclustered members                    [  ]
 #   - comparison of sihoutte maxima?                  [NV]
 #   - better clustermap colours                       [NV]
 #   - produce file for ITOL?                          [  ]
+#   - drop clusters below a certain size              [  ]
+#   - save as png as well as svg (too big breaks!)    [  ]
 
 #WORKFLOW:
 #   - add a module for the full workflow              [  ]
@@ -80,3 +86,4 @@ def main() -> None:
 # - Add logging                                       [  ]
 # - Test and add unit tests                           [NV]
 # - Code review                                       [NV]
+# - make a script to convert sim to dist              [  ]

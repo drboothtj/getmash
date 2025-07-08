@@ -21,7 +21,7 @@ setup(
     'scikit-learn>=1.6.1',
     'matplotlib>=3.10.0',
     'seaborn>=0.13.2',
-    'pyvis=0.3.2'
+    'pyvis==0.3.2'
     ],
     entry_points={'console_scripts': ["getmash=getmash.__main__:entrypoint"]}
 )

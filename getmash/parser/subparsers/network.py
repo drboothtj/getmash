@@ -24,7 +24,7 @@ def get_arguments(subparser)-> None:
     subparser.add_argument(
         "--threshold",
         "-t",
-        type=int,
+        type=float,
         default=0.05,
         help=(
         "The MASH score threshold for drawing edges expressed as a decimal" 

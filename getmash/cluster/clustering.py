@@ -128,7 +128,6 @@ def get_mash_dict(path: str) -> Dict:
                 'Value': []
             }
             for line in tsv_file:
-                print(line)
                 data['Source'].append(line[0])
                 data['Hit'].append(line[1])
                 data['Value'].append(float(line[2])) 

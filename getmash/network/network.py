@@ -3,9 +3,11 @@ network module for getmash
     functions:
         XXX
 '''
+import os
 import networkx as nx
 import matplotlib.pyplot as plt
 from pyvis.network import Network
+
 
 from getmash.utils import io
 
@@ -19,14 +21,16 @@ def draw_networkx(graph: nx.Graph, outdir:str) -> None:
             None
     '''
     plt.figure(figsize=(8, 6), facecolor='#eede7b')
-    pos = nx.spring_layout(graph)  # or kamada_kawai_layout, shell_layout, etc.
+    pos = nx.spring_layout(graph)
     nx.draw_networkx_nodes(graph, pos, node_size=500, node_color="#e64110")
     nx.draw_networkx_edges(graph, pos, width=1.5, edge_color='#207394')
     nx.draw_networkx_labels(graph, pos, font_size=10, font_color="white")
 
     plt.axis("off")
     plt.tight_layout()
-    plt.savefig(outdir +"network.svg", format="svg")
+    nx.write_graphml(graph, os.path.join(outdir + "network.graphml")) # add arg
+    plt.savefig(os.path.join(outdir + "network.svg"), format="svg") # add arg
+    plt.savefig(os.path.join(outdir + "network.png"), format="png") # add arg
     plt.close()
 
 def draw_pyvis_network(mash, outdir, threshold):
@@ -50,6 +54,8 @@ def draw_pyvis_network(mash, outdir, threshold):
     for i, source in enumerate(mash['Source']):
         target = mash['Hit'][i]
         value = mash['Value'][i]
+        if source == target: #remove self hits
+            continue
         if value > threshold:
             net.add_edge(
                 source,
@@ -58,8 +64,9 @@ def draw_pyvis_network(mash, outdir, threshold):
                 title = str(value),
                 color='#207394'
             )
-        graph.add_edge(source, target, weight=value)
-    net.write_html(outdir + "network.html")
+            graph.add_edge(source, target, weight=value)
+
+    net.write_html(outdir + "network.html") #add argument
 
     subnetworks = list(nx.connected_components(graph))
     for i, nodes in enumerate(subnetworks):

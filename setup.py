@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="getmash",
-    version="0.0.1",
+    version="0.0.3",
     author="Thomas J. Booth",
     author_email="thoboo@biosustain.dtu.dk",
     packages=find_packages(),

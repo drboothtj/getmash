@@ -22,10 +22,29 @@ def get_arguments(subparser)-> None:
         help="Directory to save the network data "
         )
     subparser.add_argument(
+        "--html",
+        "-m",
+        action="store_true",
+        help="write an interactive .html"
+        )
+    subparser.add_argument(
+        "--svg",
+        "-s",
+        action="store_true",
+        help="write the output as .svg"
+        )
+    subparser.add_argument(
+        "--png",
+        "-p",
+        action="store_true",
+        help="write the output as .png"
+        )
+    #could add graph ml but I will make that the default!
+    subparser.add_argument(
         "--threshold",
         "-t",
         type=float,
-        default=0.05,
+        default=0.3,
         help=(
         "The MASH score threshold for drawing edges expressed as a decimal" 
         "(default: %(default)s)"
